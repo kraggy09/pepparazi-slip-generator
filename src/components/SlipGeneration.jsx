@@ -7,6 +7,40 @@ const SlipGeneration = ({ open, setOpen }) => {
   const slipRef = useRef();
   const [data, setData] = useState([]);
   const [query, setQuery] = useState("");
+  const [money, setMoney] = useState({
+    sale: 0,
+    delivery: 0,
+    advance: 0,
+  });
+
+  function sendMessage(details) {
+    const { sale, delivery, advance } = details;
+    const message = `
+  Pepperazzi Order Update
+  
+  Hello,
+  
+  I am from Pepperazzi Luxury. You had placed an order with us. Your item(s) is packed, please share your address so can we can get it dispatched.
+  
+  Sale - ${sale}
+  Advance - ${advance}
+  Delivery - ${delivery}
+  
+  Balance - ${sale - advance + Number(delivery)}
+  
+  The balance amount needs to be paid to the delivery executive in cash.
+    `;
+
+    // URL encode the message
+    const encodedMessage = encodeURIComponent(message.trim());
+
+    // Construct the WhatsApp URL
+    const phoneNumber = details.mobile; // Replace with actual phone number
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=91${phoneNumber}&text=${encodedMessage}`;
+
+    // Open the WhatsApp URL in a new tab/window
+    window.open(whatsappUrl, "_blank");
+  }
 
   const handleAdd = () => {
     console.log(query);
@@ -56,6 +90,9 @@ const SlipGeneration = ({ open, setOpen }) => {
       name: finalName,
       address: finalAddress,
       mobile: finalPhone,
+      sale: money.sale,
+      advance: money.advance,
+      delivery: money.delivery,
     };
     console.log(newData);
 
@@ -79,6 +116,46 @@ const SlipGeneration = ({ open, setOpen }) => {
             name=""
             id=""
           ></textarea>
+
+          <div>
+            <p>
+              Sales:{" "}
+              <input
+                type="text"
+                onChange={(e) => {
+                  let newMoney = { ...money, sale: e.target.value };
+                  setMoney(newMoney);
+                }}
+                value={money.sale}
+              />
+            </p>
+          </div>
+          <div>
+            <p>
+              Advance:{" "}
+              <input
+                type="text"
+                onChange={(e) => {
+                  let newMoney = { ...money, advance: e.target.value };
+                  setMoney(newMoney);
+                }}
+                value={money.advance}
+              />
+            </p>
+          </div>
+          <div>
+            <p>
+              Delivery:{" "}
+              <input
+                type="text"
+                onChange={(e) => {
+                  let newMoney = { ...money, delivery: e.target.value };
+                  setMoney(newMoney);
+                }}
+                value={money.delivery}
+              />
+            </p>
+          </div>
           <button
             className="rounded-xl bg-green-500 px-4 py-2"
             onClick={handleAdd}
@@ -120,9 +197,27 @@ const SlipGeneration = ({ open, setOpen }) => {
                 <p>
                   <strong>Mobile:</strong> {d.mobile}
                 </p>
+                <p>
+                  <strong>Sale:</strong> {d.sale}
+                </p>
+                <p>
+                  <strong>Advance:</strong> {d.advance}
+                </p>
+                <p>
+                  <strong>Delivery:</strong> {d.delivery}
+                </p>
+                <p>
+                  <strong>Total:</strong>{" "}
+                  {d.sale - d.advance + Number(d.delivery)}
+                </p>
               </div>
 
-              <button className="bg-green-500 text-white px-4 py-2 font-semibold rounded-lg">
+              <button
+                onClick={() => {
+                  sendMessage(d);
+                }}
+                className="bg-green-500 text-white px-4 py-2 font-semibold rounded-lg"
+              >
                 Whatsapp
               </button>
             </div>
